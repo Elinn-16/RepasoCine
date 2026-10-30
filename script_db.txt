@@ -1,0 +1,68 @@
+USE [master]
+GO
+
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'db_cine')
+BEGIN
+    CREATE DATABASE [db_cine];
+END
+GO
+
+USE [db_cine]
+GO
+
+IF OBJECT_ID('dbo.Funciones', 'U') IS NOT NULL DROP TABLE dbo.Funciones;
+IF OBJECT_ID('dbo.Salas', 'U') IS NOT NULL DROP TABLE dbo.Salas;
+GO
+
+CREATE TABLE dbo.Salas (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Nombre NVARCHAR(100) NOT NULL,
+    Formato NVARCHAR(10) NOT NULL,
+    EstaActiva BIT NOT NULL
+);
+GO
+
+CREATE TABLE dbo.Funciones (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Pelicula NVARCHAR(150) NOT NULL,
+    DuracionMinutos INT NOT NULL,
+    Fecha DATE NOT NULL,
+    EstaFinalizada BIT NOT NULL,
+    IdSala INT NOT NULL,
+    CONSTRAINT FK_Funciones_Salas FOREIGN KEY (IdSala) REFERENCES dbo.Salas(Id)
+);
+GO
+
+-- ===== Datos de ejemplo =====
+-- Pensados para ejercitar cada regla: una sala inactiva (4), una con
+-- exactamente 3 funciones pendientes (5), una con exactamente 4 (6, en
+-- el límite), una con funciones finalizadas y pendientes mezcladas (7),
+-- y una sala de cada formato entre las activas (1, 2, 3).
+
+INSERT INTO dbo.Salas (Nombre, Formato, EstaActiva) VALUES
+('Sala Central', '2D', 1),    -- Id 1
+('Sala Imperial', '3D', 1),   -- Id 2
+('Sala Astral', 'IMAX', 1),   -- Id 3
+('Sala Vieja', '2D', 0),      -- Id 4 -- inactiva
+('Sala Premiere', '3D', 1),   -- Id 5 -- va a tener exactamente 3 pendientes
+('Sala Royale', 'IMAX', 1),   -- Id 6 -- va a tener exactamente 4 pendientes (límite)
+('Sala Mixta', '2D', 1);      -- Id 7 -- mezcla finalizadas y pendientes
+GO
+
+INSERT INTO dbo.Funciones (Pelicula, DuracionMinutos, Fecha, EstaFinalizada, IdSala) VALUES
+('Oppenheimer', 180, '2026-11-02', 0, 1),
+('Dune: Parte Dos', 166, '2026-11-02', 0, 2),
+('Interstellar', 169, '2026-11-03', 0, 3),
+('El Aro', 115, '2026-11-01', 0, 4),
+('Barbie', 114, '2026-11-02', 0, 5),
+('Oppenheimer', 180, '2026-11-03', 0, 5),
+('Wonka', 116, '2026-11-04', 0, 5),
+('Avatar: El Camino del Agua', 192, '2026-11-02', 0, 6),
+('Spider-Man: Across the Spider-Verse', 140, '2026-11-03', 0, 6),
+('Guardianes de la Galaxia Vol. 3', 150, '2026-11-04', 0, 6),
+('John Wick 4', 169, '2026-11-05', 0, 6),
+('Titanic', 195, '2026-10-20', 1, 7),
+('Avengers: Endgame', 181, '2026-10-22', 1, 7),
+('Deadpool & Wolverine', 127, '2026-11-02', 0, 7),
+('Inside Out 2', 96, '2026-11-03', 0, 7);
+GO
